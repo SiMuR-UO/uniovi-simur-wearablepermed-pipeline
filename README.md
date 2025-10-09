@@ -16,9 +16,6 @@
 
 > Uniovi Simur WearablePerMed Pipeline.
 
-# Description
-Uniovi Simur WearablePerMed Pipeline
-
 # For developing
 Create project virtual environment:
 ```
