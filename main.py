@@ -41,11 +41,11 @@ def parse_steps(s: str):
         raise argparse.ArgumentTypeError("At least one step must be provided.")
 
     # Validate: all must be 1–5
-    valid_steps = {1, 2, 3, 4, 5}
+    valid_steps = {1, 2, 3, 4, 5, 6}
     invalid = [x for x in steps if x not in valid_steps]
     if invalid:
         raise argparse.ArgumentTypeError(
-            f"Invalid steps: {invalid}. Only 1, 2, 3, 4, or 5 are allowed."
+            f"Invalid steps: {invalid}. Only 1, 2, 3, 4, 5 or 6 are allowed."
         )
 
     # Validate: ascending order
@@ -305,9 +305,15 @@ def STEP05(participant_id):
 
     execute_command(cmd)  
 
-def STEP06():
-    _logger.info(args.output_case_folder)
-    _logger.info(args.case_id)
+def STEP06():    
+    cmd = [
+        "model_aggregation",
+        "--dataset-folder", args.dataset_folder,
+        "--output-folder", args.output_case_folder,
+        "--case-id", args.case_id
+    ]
+
+    execute_command(cmd) 
 
 # get script arguments and configure loggin
 args = parse_args(sys.argv[1:])
@@ -322,7 +328,7 @@ df = pd.read_csv(
     encoding="utf-8",  # handle special characters
 )
 
-# Loop through participant dataset folder 
+# Start pre training pipelines for all participants 
 _logger.info("Start pre training pipelines for all participants")
 
 for dataset_folder_path, participant_ids, filenames in walk(args.dataset_folder):
@@ -357,9 +363,10 @@ for dataset_folder_path, participant_ids, filenames in walk(args.dataset_folder)
                 _logger.info(f"STEP05: create participant windowed datasets pipeline step for: {participant_id}")
                 STEP05(participant_id)
 
-# Final agregation of all participant datasets
-_logger.info("Final agregation of all participant datasets")
-STEP06()
+# Final dataset agregation for all participants
+_logger.info("Final dataset agregation for all participants")
+if 6 in args.execute_steps:
+    STEP06()
 
 _logger.info("Stop participant pre training")
 _logger.info("Pipeline ends here at " + str(datetime.now()))

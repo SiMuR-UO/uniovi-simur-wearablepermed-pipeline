@@ -1,6 +1,13 @@
 # Description
 Uniovi Simur WearablePerMed Pipeline
 
+# Univi dependencies
+If you want get the last dependencies yuo must execute this command
+
+```
+$ pip install uniovi-simur-wearablepermed-utils --upgrade
+```
+
 # Execute
 ```
 $ python3 -m venv .venv
