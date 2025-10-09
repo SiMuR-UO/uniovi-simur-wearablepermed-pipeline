@@ -338,33 +338,33 @@ for dataset_folder_path, participant_ids, filenames in walk(args.dataset_folder)
         for participant_id in participant_ids:
             _logger.info(f"Execute the training participant pipeline for: {participant_id}")
 
-            # Define STEP01: convert bin to csv files
+            # Define STEP01: convert bin to csv files for each participant id
             if 1 in args.execute_steps:
                 _logger.info(f"STEP01: convert bin to csv files pipeline step for: {participant_id}")        
                 STEP01(participant_id)
         
-            # Define STEP02: segment csv sensor files
+            # Define STEP02: segment csv files for each participant id
             if 2 in args.execute_steps:
                 _logger.info(f"STEP02: segment csv sensor files pipeline step for: {participant_id}")
                 STEP02(participant_id)
 
-            # Define STEP03: windowed segment files for convolution networks
+            # Define STEP03: windowed segment files for convolution models for each participant id
             if 3 in args.execute_steps:
-                _logger.info(f"STEP03: windowed segment files for convolution networks pipeline step for: {participant_id}")
+                _logger.info(f"STEP03: windowed segment files for convolution models pipeline step for: {participant_id}")
                 STEP03(participant_id)
 
-            # Define STEP04: extract features from windowed files for randomforest networks
+            # Define STEP04: extract features from windowed files for randomforest models for each participant id
             if 4 in args.execute_steps:
-                _logger.info(f"STEP04: extract features from windowed files for randomforest networks pipeline step for: {participant_id}")
+                _logger.info(f"STEP04: extract features from windowed files for randomforest models pipeline step for: {participant_id}")
                 STEP04(participant_id)
 
-            # Define STEP05: create participant windowed datasets
+            # Define STEP05: partial aggregation datasets for convolution and randomforest models for each participant id
             if 5 in args.execute_steps:
                 _logger.info(f"STEP05: create participant windowed datasets pipeline step for: {participant_id}")
                 STEP05(participant_id)
 
-# Final dataset agregation for all participants
-_logger.info("Final dataset agregation for all participants")
+# Total datasets aggregation for all participants
+_logger.info("Total datasets aggregation for all participants")
 if 6 in args.execute_steps:
     STEP06()
 
