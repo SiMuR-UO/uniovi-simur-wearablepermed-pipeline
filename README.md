@@ -29,7 +29,7 @@ Update project requirements:
 $ pip freeze > requirements.txt
 ```
 
-Build project. Don't forget update the version library from **setup.cfg** project configuration file
+Build project. Don't forget update the version library from **setup.cfg** project build file
 ```
 $ tox -e clean
 $ tox -e build
