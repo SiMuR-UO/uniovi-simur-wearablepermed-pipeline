@@ -29,7 +29,7 @@ Update project requirements:
 $ pip freeze > requirements.txt
 ```
 
-Build project
+Build project. Don't forget update the version library from **setup.cfg** project configuration file
 ```
 $ tox -e clean
 $ tox -e build
@@ -54,7 +54,7 @@ python3 main.py \
 ```
 
 # Uniovi library
-If you want upgrade the pipeline libray to the last **uniovi-simur-wearablepermed-utils** library you must execute this command (two times):
+If you want upgrade the pipeline library to the last **uniovi-simur-wearablepermed-utils** you must execute this command (two times):
 
 ```
 $ pip install uniovi-simur-wearablepermed-utils --upgrade
