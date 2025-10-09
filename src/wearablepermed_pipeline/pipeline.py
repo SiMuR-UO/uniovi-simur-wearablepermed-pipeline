@@ -195,7 +195,7 @@ def execute_command(command):
 
     process.wait()
 
-def STEP01(participant_id):
+def STEP01(args, participant_id):
     # set participant folder
     participant_folder = Path(path.join(args.dataset_folder, participant_id))
 
@@ -213,7 +213,7 @@ def STEP01(participant_id):
 
         execute_command(cmd)
 
-def STEP02(participant_id):
+def STEP02(args, df, participant_id):
     # set participant folder
     participant_folder = Path(path.join(args.dataset_folder, participant_id))
     
@@ -255,7 +255,7 @@ def STEP02(participant_id):
 
             execute_command(cmd)    
 
-def STEP03(participant_id):
+def STEP03(args, participant_id):
     # set participant folder
     participant_folder = Path(path.join(args.dataset_folder, participant_id))
 
@@ -276,7 +276,7 @@ def STEP03(participant_id):
 
         execute_command(cmd)        
 
-def STEP04(participant_id):
+def STEP04(args, participant_id):
     # set participant folder
     participant_folder = Path(path.join(args.dataset_folder, participant_id))
 
@@ -294,7 +294,7 @@ def STEP04(participant_id):
 
         execute_command(cmd)   
 
-def STEP05(participant_id):
+def STEP05(args, participant_id):
     cmd = [
         "aggregate_windows_features",
         "--dataset-folder", path.join(args.dataset_folder, participant_id),
@@ -305,7 +305,7 @@ def STEP05(participant_id):
 
     execute_command(cmd)  
 
-def STEP06():    
+def STEP06(args):    
     cmd = [
         "model_aggregation",
         "--dataset-folder", args.dataset_folder,
@@ -315,58 +315,87 @@ def STEP06():
 
     execute_command(cmd) 
 
-# get script arguments and configure loggin
-args = parse_args(sys.argv[1:])
-setup_logging(args.loglevel)
+def main(args):
+    """Wrapper allowing :func:`fib` to be called with string arguments in a CLI fashion
 
-_logger.info("Pipeline starts here at " + str(datetime.now()))
+    Instead of returning the value from :func:`fib`, it prints the result to the
+    ``stdout`` in a nicely formatted message.
 
-# Load the CSV file with missing datetime participants
-df = pd.read_csv(
-    args.participants_missing_file,
-    delimiter=";",     # or ';' or '\t' if needed
-    encoding="utf-8",  # handle special characters
-)
+    Args:
+      args (List[str]): command line parameters as list of strings
+          (for example  ``["--verbose", "42"]``).
+    """
+    args = parse_args(args)
+    setup_logging(args.loglevel)
 
-# Start pre training pipelines for all participants 
-_logger.info("Start pre training pipelines for all participants")
+    _logger.info("Pipeline starts here at " + str(datetime.now()))
 
-for dataset_folder_path, participant_ids, filenames in walk(args.dataset_folder):
-     # Only process one level of subfolders
-    if dataset_folder_path == args.dataset_folder:
-        # Execute the pipeline for each participant
-        for participant_id in participant_ids:
-            _logger.info(f"Execute the training participant pipeline for: {participant_id}")
+    # Load the CSV file with missing datetime participants
+    df = pd.read_csv(
+        args.participants_missing_file,
+        delimiter=";",     # or ';' or '\t' if needed
+        encoding="utf-8",  # handle special characters
+    )
 
-            # Define STEP01: convert bin to csv files for each participant id
-            if 1 in args.execute_steps:
-                _logger.info(f"STEP01: convert bin to csv files pipeline step for: {participant_id}")        
-                STEP01(participant_id)
-        
-            # Define STEP02: segment csv files for each participant id
-            if 2 in args.execute_steps:
-                _logger.info(f"STEP02: segment csv sensor files pipeline step for: {participant_id}")
-                STEP02(participant_id)
+    # Start pre training pipelines for all participants 
+    _logger.info("Start pre training pipelines for all participants")
 
-            # Define STEP03: windowed segment files for convolution models for each participant id
-            if 3 in args.execute_steps:
-                _logger.info(f"STEP03: windowed segment files for convolution models pipeline step for: {participant_id}")
-                STEP03(participant_id)
+    for dataset_folder_path, participant_ids, filenames in walk(args.dataset_folder):
+        # Only process one level of subfolders
+        if dataset_folder_path == args.dataset_folder:
+            # Execute the pipeline for each participant
+            for participant_id in participant_ids:
+                _logger.info(f"Execute the training participant pipeline for: {participant_id}")
 
-            # Define STEP04: extract features from windowed files for randomforest models for each participant id
-            if 4 in args.execute_steps:
-                _logger.info(f"STEP04: extract features from windowed files for randomforest models pipeline step for: {participant_id}")
-                STEP04(participant_id)
+                # Define STEP01: convert bin to csv files for each participant id
+                if 1 in args.execute_steps:
+                    _logger.info(f"STEP01: convert bin to csv files pipeline step for: {participant_id}")        
+                    STEP01(args, participant_id)
+            
+                # Define STEP02: segment csv files for each participant id
+                if 2 in args.execute_steps:
+                    _logger.info(f"STEP02: segment csv sensor files pipeline step for: {participant_id}")
+                    STEP02(args, df, participant_id)
 
-            # Define STEP05: partial aggregation datasets for convolution and randomforest models for each participant id
-            if 5 in args.execute_steps:
-                _logger.info(f"STEP05: create participant windowed datasets pipeline step for: {participant_id}")
-                STEP05(participant_id)
+                # Define STEP03: windowed segment files for convolution models for each participant id
+                if 3 in args.execute_steps:
+                    _logger.info(f"STEP03: windowed segment files for convolution models pipeline step for: {participant_id}")
+                    STEP03(args,participant_id)
 
-# Total datasets aggregation for all participants
-_logger.info("Total datasets aggregation for all participants")
-if 6 in args.execute_steps:
-    STEP06()
+                # Define STEP04: extract features from windowed files for randomforest models for each participant id
+                if 4 in args.execute_steps:
+                    _logger.info(f"STEP04: extract features from windowed files for randomforest models pipeline step for: {participant_id}")
+                    STEP04(args,participant_id)
 
-_logger.info("Stop participant pre training")
-_logger.info("Pipeline ends here at " + str(datetime.now()))
+                # Define STEP05: partial aggregation datasets for convolution and randomforest models for each participant id
+                if 5 in args.execute_steps:
+                    _logger.info(f"STEP05: create participant windowed datasets pipeline step for: {participant_id}")
+                    STEP05(args, participant_id)
+
+    # Total datasets aggregation for all participants
+    _logger.info("Total datasets aggregation for all participants")
+    if 6 in args.execute_steps:
+        STEP06(args)
+
+    _logger.info("Stop participant pre training")
+    _logger.info("Pipeline ends here at " + str(datetime.now()))
+
+def run():
+    """Calls :func:`main` passing the CLI arguments extracted from :obj:`sys.argv`
+
+    This function can be used as entry point to create console scripts with setuptools.
+    """
+    main(sys.argv[1:])
+
+if __name__ == "__main__":
+    # ^  This is a guard statement that will prevent the following code from
+    #    being executed in the case someone imports this file instead of
+    #    executing it as a script.
+    #    https://docs.python.org/3/library/__main__.html
+
+    # After installing your project with pip, users can also run your Python
+    # modules as scripts via the ``-m`` flag, as defined in PEP 338::
+    #
+    #     python -m wearablepermed_utils.skeleton 42
+    #
+    run()
