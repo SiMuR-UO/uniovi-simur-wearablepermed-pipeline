@@ -195,6 +195,22 @@ def execute_command(command):
 
     process.wait()
 
+    # Check exit code
+    if process.returncode != 0:
+        error_msg = (
+            f"Command failed with exit code {process.returncode}\n"
+            f"Command: {' '.join(command)}\n"
+        )
+
+        # Log the error
+        _logger.error(error_msg)
+
+        raise subprocess.CalledProcessError(
+            returncode=process.returncode,
+            cmd=command,
+            output=error_msg
+        )
+    
 def STEP01(args, participant_id):
     # set participant folder
     participant_folder = Path(path.join(args.dataset_folder, participant_id))
@@ -337,45 +353,77 @@ def main(args):
         encoding="utf-8",  # handle special characters
     )
 
+    df_error = pd.DataFrame(columns=["participant_id", "step", "command"])
+
     # Start pre training pipelines for all participants 
     _logger.info("Start pre training pipelines for all participants")
 
-    for dataset_folder_path, participant_ids, filenames in walk(args.dataset_folder):
-        # Only process one level of subfolders
-        if dataset_folder_path == args.dataset_folder:
-            # Execute the pipeline for each participant
-            for participant_id in participant_ids:
-                _logger.info(f"Execute the training participant pipeline for: {participant_id}")
+    # Open the file for writing
+    with open("error_log.csv", mode="w", newline="") as error_file:
+        for dataset_folder_path, participant_ids, filenames in walk(args.dataset_folder):
+            participant_ids.sort()
+            filenames.sort()
 
-                # Define STEP01: convert bin to csv files for each participant id
-                if 1 in args.execute_steps:
-                    _logger.info(f"STEP01: convert bin to csv files pipeline step for: {participant_id}")        
-                    STEP01(args, participant_id)
-            
-                # Define STEP02: segment csv files for each participant id
-                if 2 in args.execute_steps:
-                    _logger.info(f"STEP02: segment csv sensor files pipeline step for: {participant_id}")
-                    STEP02(args, df, participant_id)
+            # Only process one level of subfolders
+            if dataset_folder_path == args.dataset_folder:
+                # Execute the pipeline for each participant
+                for participant_id in participant_ids:
+                    _logger.info(f"Execute the training participant pipeline for: {participant_id}")
 
-                # Define STEP03: windowed segment files for convolution models for each participant id
-                if 3 in args.execute_steps:
-                    _logger.info(f"STEP03: windowed segment files for convolution models pipeline step for: {participant_id}")
-                    STEP03(args,participant_id)
+                    # Define STEP01: convert bin to csv files for each participant id
+                    if 1 in args.execute_steps:
+                        _logger.info(f"STEP01: convert bin to csv files pipeline step for: {participant_id}")  
 
-                # Define STEP04: extract features from windowed files for randomforest models for each participant id
-                if 4 in args.execute_steps:
-                    _logger.info(f"STEP04: extract features from windowed files for randomforest models pipeline step for: {participant_id}")
-                    STEP04(args,participant_id)
+                        try:
+                            STEP01(args, participant_id)    
+                        except subprocess.CalledProcessError as e:
+                            df_error.loc[len(df_error)] = [participant_id, "STEP01", e.cmd]
 
-                # Define STEP05: partial aggregation datasets for convolution and randomforest models for each participant id
-                if 5 in args.execute_steps:
-                    _logger.info(f"STEP05: create participant windowed datasets pipeline step for: {participant_id}")
-                    STEP05(args, participant_id)
+                    # Define STEP02: segment csv files for each participant id
+                    if 2 in args.execute_steps:
+                        _logger.info(f"STEP02: segment csv sensor files pipeline step for: {participant_id}")
 
-    # Total datasets aggregation for all participants
-    _logger.info("Total datasets aggregation for all participants")
-    if 6 in args.execute_steps:
-        STEP06(args)
+                        try:
+                            STEP02(args, df, participant_id)                            
+                        except subprocess.CalledProcessError as e:
+                            df_error.loc[len(df_error)] = [participant_id, "STEP02", e.cmd]
+                        
+                    # Define STEP03: windowed segment files for convolution models for each participant id
+                    if 3 in args.execute_steps:
+                        _logger.info(f"STEP03: windowed segment files for convolution models pipeline step for: {participant_id}")
+
+                        try:
+                            STEP03(args,participant_id)
+                        except subprocess.CalledProcessError as e:
+                            df_error.loc[len(df_error)] = [participant_id, "STEP03", e.cmd]
+
+                    # Define STEP04: extract features from windowed files for randomforest models for each participant id
+                    if 4 in args.execute_steps:
+                        _logger.info(f"STEP04: extract features from windowed files for randomforest models pipeline step for: {participant_id}")
+
+                        try:
+                            STEP04(args,participant_id)
+                        except subprocess.CalledProcessError as e:
+                            df_error.loc[len(df_error)] = [participant_id, "STEP04", e.cmd]
+
+                    # Define STEP05: partial aggregation datasets for convolution and randomforest models for each participant id
+                    if 5 in args.execute_steps:
+                        _logger.info(f"STEP05: create participant windowed datasets pipeline step for: {participant_id}")
+
+                        try:                        
+                            STEP05(args, participant_id)
+                        except subprocess.CalledProcessError as e:
+                            df_error.loc[len(df_error)] = [participant_id, "STEP05", e.cmd]
+
+        # Total datasets aggregation for all participants
+        _logger.info("Total datasets aggregation for all participants")        
+        if 6 in args.execute_steps:
+            try: 
+                STEP06(args)
+            except subprocess.CalledProcessError as e:
+                df_error.loc[len(df_error)] = [None, "STEP06", e.cmd]                
+
+    df_error.to_csv("error_log.csv", index=False)
 
     _logger.info("Stop participant pre training")
     _logger.info("Pipeline ends here at " + str(datetime.now()))

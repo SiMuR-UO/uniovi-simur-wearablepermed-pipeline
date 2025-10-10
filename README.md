@@ -41,7 +41,7 @@ Execute command test
 ```
 python3 main.py \
     --verbose \
-    --execute-steps 2,3,4,5 \
+    --execute-steps 2,3,4,5,6 \
     --dataset-folder /home/miguel/git/uniovi/simur/uniovi-simur-wearablepermed-utils/data/input \
     --participants-missing-file /home/miguel/temp/wearablepermed_pipeline/missing_end_datetimes.csv \
     --crop-columns 1:7 \
