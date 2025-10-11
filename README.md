@@ -16,12 +16,40 @@
 
 > Uniovi Simur WearablePerMed Pipeline.
 
-# For developing
-Create project virtual environment:
+## Schaffolding
+Execute PyScaffold command to create the project:
+```
+$ putup --markdown uniovi-simur-wearablepermed-pipeline -p wearablepermed_pipeline \
+     -d "Uniovi Simur WearablePerMed Pipeline." \
+     -u https://github.com/SiMuR-UO/uniovi-simur-wearablepermed-pipeline.git 
+```
+
+Create a virtual environment inside for your project and active it:
 ```
 $ python3 -m venv .venv
 $ source .venv/bin/activate
+```
+
+Install and upgrade tox automation project manager:
+```
+$ pip install --upgrade tox
+```
+
+Install and upgrade project modules:
+```
+$ pip install -U pandas uniovi-simur-wearablepermed-utils
+```
+
+## Code and Debugging
+
+Install library modules:
+```
 $ pip install -r requirements.txt
+```
+
+Install module locally for debugg
+```
+$ pip install -e .
 ```
 
 Update project requirements:
@@ -29,15 +57,22 @@ Update project requirements:
 $ pip freeze > requirements.txt
 ```
 
-Build project. Don't forget update the version library from **setup.cfg** project build file
+## Project management
+
+Project commands for: test, clean, build, generate documentation or publish your library in pypi repository.
+Don't forget update the version library from **setup.cfg** project build file
+
 ```
+$ tox
 $ tox -e clean
 $ tox -e build
 $ tox -e docs
 $ tox -e publish -- --repository pypi
 ```
 
-Execute command test
+## Testing
+
+Execute one pipeline eityh this command:
 ```
 python3 main.py \
     --verbose \
