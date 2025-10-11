@@ -57,6 +57,12 @@ Update project requirements:
 $ pip freeze > requirements.txt
 ```
 
+If you want upgrade the pipeline library to the last **uniovi-simur-wearablepermed-utils** you must execute this command (two times):
+
+```
+$ pip install uniovi-simur-wearablepermed-utils --upgrade
+```
+
 ## Project management
 
 Project commands for: test, clean, build, generate documentation or publish your library in pypi repository.
@@ -86,13 +92,6 @@ python3 main.py \
     --ml-sensors thigh,hip,wrist \
     --output-case-folder /home/miguel/git/uniovi/simur/uniovi-simur-wearablepermed-utils/data/output \
     --case-id case_sample
-```
-
-# Uniovi library
-If you want upgrade the pipeline library to the last **uniovi-simur-wearablepermed-utils** you must execute this command (two times):
-
-```
-$ pip install uniovi-simur-wearablepermed-utils --upgrade
 ```
 
 <!-- pyscaffold-notes -->
