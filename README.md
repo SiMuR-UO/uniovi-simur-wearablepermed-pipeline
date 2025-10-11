@@ -72,7 +72,7 @@ $ tox -e publish -- --repository pypi
 
 ## Testing
 
-Execute one pipeline eityh this command:
+Execute one pipeline from this command:
 ```
 python3 main.py \
     --verbose \
