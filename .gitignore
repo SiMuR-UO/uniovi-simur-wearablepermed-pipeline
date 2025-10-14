@@ -55,4 +55,4 @@ MANIFEST
 
 data/
 
-error_log.csv
+error_log*
