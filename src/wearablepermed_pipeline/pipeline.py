@@ -1,14 +1,12 @@
-from enum import Enum
 import sys
-from os import walk, path
-from datetime import datetime
 import argparse
 import logging
-from pathlib import Path
-
 import subprocess
-
 import pandas as pd
+from enum import Enum
+from os import walk, path
+from datetime import datetime
+from pathlib import Path
 
 __author__ = "Miguel Angel Salinas Gancedo<uo34525@uniovi.es>, Alejandro Castellanos Alonso<uo265351@uniovi.es>, Antonio Miguel López Rodriguez<amlopez@uniovi.es>"
 __copyright__ = "Uniovi"
@@ -289,6 +287,9 @@ def STEP03(args, participant_id):
             "--window-overlapping-percent", args.window_overlapping_percent,
             "--output", path.join(str(file.parent), file.stem.replace("_seg", "_tot") + ".npz")
         ]
+
+        if args.include_not_estructure_data == True:
+            cmd.append('--include-not-estructure-data')
 
         execute_command(cmd)        
 
