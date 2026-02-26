@@ -1,3 +1,4 @@
+import os
 import sys
 import random
 import argparse
@@ -215,18 +216,34 @@ def setup_logging(loglevel):
     )
 
 def execute_command(command):
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    # Read both streams
+    stdout_lines = []
+    stderr_lines = []
+    
     for line in process.stdout:
-        _logger.info("Procesing " + line.strip())
+        line = line.strip()
+        stdout_lines.append(line)
+        _logger.info("Processing " + line)
+
+    for line in process.stderr:
+        line = line.strip()
+        stderr_lines.append(line)
+        _logger.error("Error output " + line)
 
     process.wait()
+
+    # Build full outputs
+    stdout_text = "\n".join(stdout_lines)
+    stderr_text = "\n".join(stderr_lines)
 
     # Check exit code
     if process.returncode != 0:
         error_msg = (
             f"Command failed with exit code {process.returncode}\n"
             f"Command: {' '.join(command)}\n"
+            f"STDERR:\n{stderr_text}\n"
         )
 
         # Log the error
@@ -412,16 +429,16 @@ def main(args):
 
     # Open the file for writing
     with open("error_log.csv", mode="w", newline="") as error_file:
+        # get a random sample of participants to be desynchronized in the segmentation step to study influence in metrics
+        if (args.desync_participant_percent is not None):
+            n_total = len(os.listdir(args.dataset_folder))
+            n_select = int(n_total * args.desync_participant_percent / 100)
+
+            desync_participant_ids = sorted(random.sample(os.listdir(args.dataset_folder), n_select))
+
         for dataset_folder_path, participant_ids, filenames in walk(args.dataset_folder):
             participant_ids.sort()
             filenames.sort()
-
-            # calculate a random participants sublist to be desynchronize
-            if (args.desync_participant_percent is not None):
-                n_total = len(participant_ids)
-                n_select = int(n_total * args.desync_participant_percent / 100)
-
-                desync_participant_ids = random.sample(participant_ids, n_select)
 
             # Only process one level of subfolders
             if dataset_folder_path == args.dataset_folder:
