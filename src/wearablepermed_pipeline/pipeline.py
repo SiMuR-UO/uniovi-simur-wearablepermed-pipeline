@@ -315,7 +315,7 @@ def STEP02(args, df, participant_id, desync_body_segment=None, desync_seconds=No
         else: 
             if body_segment == desync_body_segment:
                 cmd = [
-                    "csv_to_segmented_activity",
+                    "csv_to_segmented_activity_desync",
                     "--csv-file", str(file),
                     "--excel-activity-log", activity_file,
                     "--body-segment", body_segment,
