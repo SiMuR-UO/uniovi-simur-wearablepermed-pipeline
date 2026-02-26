@@ -1,4 +1,5 @@
 import sys
+import random
 import argparse
 import logging
 import subprocess
@@ -156,6 +157,34 @@ def parse_args(args):
     ) 
 
     parser.add_argument(
+        "-desync-participant-percent",
+        "--desync-participant-percent",           
+        dest="desync_participant_percent",
+        required=True,
+        type=int,
+        help='Participant percent desynchronize'
+    )
+
+    parser.add_argument(
+        "-desync-segment-body",
+        "--desync-segment-body",           
+        dest="desync_segment_body",
+        type=str,
+        required=True,
+        choices=['PI', 'M', 'C'],
+        help='Segment Body to be desynchronize'
+    )
+
+    parser.add_argument(
+        "-desync-seconds",
+        "--desync-seconds",           
+        dest="desync_seconds",
+        type=int,
+        required=True,
+        help='Seconds to be desynchronize'
+    )
+
+    parser.add_argument(
         "-v",
         "--verbose",
         dest="loglevel",
@@ -227,7 +256,7 @@ def STEP01(args, participant_id):
 
         execute_command(cmd)
 
-def STEP02(args, df, participant_id):
+def STEP02(args, df, participant_id, desync_body_segment=None, desync_seconds=None):
     # set participant folder
     participant_folder = Path(path.join(args.dataset_folder, participant_id))
     
@@ -247,25 +276,47 @@ def STEP02(args, df, participant_id):
         row_missing_data = df[(df["Participant"] == participant_id) & (df["Acceloremeters"] == body_segment)]
 
         if row_missing_data.empty:
-            cmd = [
-                "csv_to_segmented_activity",
-                "--csv-file", str(file),
-                "--excel-activity-log", activity_file,
-                "--body-segment", body_segment,
-                "--output", path.join(str(participant_folder), file.stem + "_seg" + ".npz")
-            ]
+            if body_segment == desync_body_segment:
+                cmd = [
+                    "csv_to_segmented_activity_desync",
+                    "--csv-file", str(file),
+                    "--excel-activity-log", activity_file,
+                    "--body-segment", body_segment,
+                    "--desync-seconds", str(desync_seconds),
+                    "--output", path.join(str(participant_folder), file.stem + "_seg" + ".npz")
+                ]
+            else:
+                cmd = [
+                    "csv_to_segmented_activity",
+                    "--csv-file", str(file),
+                    "--excel-activity-log", activity_file,
+                    "--body-segment", body_segment,
+                    "--output", path.join(str(participant_folder), file.stem + "_seg" + ".npz")
+                ]
 
             execute_command(cmd)
-        else:  
-            cmd = [
-                "csv_to_segmented_activity",
-                "--csv-file", str(file),
-                "--excel-activity-log", activity_file,
-                "--body-segment", body_segment,
-                "--sample-init", str(row_missing_data.iloc[0]["Sample Numbers"]),
-                "--start-time", str(row_missing_data.iloc[0]["Excel Hour"]),
-                "--output", path.join(str(participant_folder), file.stem + "_seg" + ".npz"),
-            ]
+        else: 
+            if body_segment == desync_body_segment:
+                cmd = [
+                    "csv_to_segmented_activity",
+                    "--csv-file", str(file),
+                    "--excel-activity-log", activity_file,
+                    "--body-segment", body_segment,
+                    "--desync-seconds", str(desync_seconds),
+                    "--sample-init", str(row_missing_data.iloc[0]["Sample Numbers"]),
+                    "--start-time", str(row_missing_data.iloc[0]["Excel Hour"]),
+                    "--output", path.join(str(participant_folder), file.stem + "_seg" + ".npz"),
+                ]
+            else:
+               cmd = [
+                    "csv_to_segmented_activity",
+                    "--csv-file", str(file),
+                    "--excel-activity-log", activity_file,
+                    "--body-segment", body_segment,
+                    "--sample-init", str(row_missing_data.iloc[0]["Sample Numbers"]),
+                    "--start-time", str(row_missing_data.iloc[0]["Excel Hour"]),
+                    "--output", path.join(str(participant_folder), file.stem + "_seg" + ".npz"),
+                ]
 
             execute_command(cmd)    
 
@@ -365,6 +416,13 @@ def main(args):
             participant_ids.sort()
             filenames.sort()
 
+            # calculate a random participants sublist to be desynchronize
+            if (args.desync_participant_percent is not None):
+                n_total = len(participant_ids)
+                n_select = int(n_total * args.desync_participant_percent / 100)
+
+                desync_participant_ids = random.sample(participant_ids, n_select)
+
             # Only process one level of subfolders
             if dataset_folder_path == args.dataset_folder:
                 # Execute the pipeline for each participant
@@ -385,7 +443,11 @@ def main(args):
                         _logger.info(f"STEP02: segment csv sensor files pipeline step for: {participant_id}")
 
                         try:
-                            STEP02(args, df, participant_id)                            
+                            # Apply a synthetic signal desynchronize to some participants to study influence in metrics
+                            if (desync_participant_ids is not None and participant_id in desync_participant_ids):
+                                STEP02(args, df, participant_id, args.desync_segment_body, args.desync_seconds)
+                            else:
+                                STEP02(args, df, participant_id)                            
                         except subprocess.CalledProcessError as e:
                             df_error.loc[len(df_error)] = [participant_id, "STEP02", e.cmd]
                         
