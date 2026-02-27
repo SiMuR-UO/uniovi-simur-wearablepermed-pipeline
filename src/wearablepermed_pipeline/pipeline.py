@@ -158,10 +158,17 @@ def parse_args(args):
     ) 
 
     parser.add_argument(
+        "-participants",
+        "--participants",
+        dest="participants",
+        type=str,
+        help="select subspace-separated participants IDs"
+    )
+
+    parser.add_argument(
         "-desync-participant-percent",
         "--desync-participant-percent",           
         dest="desync_participant_percent",
-        required=True,
         type=int,
         help='Participant percent desynchronize'
     )
@@ -171,7 +178,6 @@ def parse_args(args):
         "--desync-segment-body",           
         dest="desync_segment_body",
         type=str,
-        required=True,
         choices=['PI', 'M', 'C'],
         help='Segment Body to be desynchronize'
     )
@@ -181,7 +187,6 @@ def parse_args(args):
         "--desync-seconds",           
         dest="desync_seconds",
         type=int,
-        required=True,
         help='Seconds to be desynchronize'
     )
 
@@ -437,6 +442,10 @@ def main(args):
             desync_participant_ids = sorted(random.sample(os.listdir(args.dataset_folder), n_select))
 
         for dataset_folder_path, participant_ids, filenames in walk(args.dataset_folder):
+            # Only select the participants selected from params if is defined
+            if args.participants is not None:
+                participant_ids[:] = [d for d in participant_ids if d in args.participants.split()]
+
             participant_ids.sort()
             filenames.sort()
 
