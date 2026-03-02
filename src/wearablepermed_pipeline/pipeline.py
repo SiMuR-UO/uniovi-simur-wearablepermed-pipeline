@@ -442,7 +442,7 @@ def main(args):
             desync_participant_ids = sorted(random.sample(os.listdir(args.dataset_folder), n_select))
 
         for dataset_folder_path, participant_ids, filenames in walk(args.dataset_folder):
-            # Only select the participants selected from params if is defined
+            # Only filter participants for each dataset folder if param is defined
             if args.participants is not None:
                 participant_ids[:] = [d for d in participant_ids if d in args.participants.split()]
 
@@ -469,7 +469,7 @@ def main(args):
                         _logger.info(f"STEP02: segment csv sensor files pipeline step for: {participant_id}")
 
                         try:
-                            # Apply a synthetic signal desynchronize to some participants to study influence in metrics
+                            # Apply synthetic desynchronization signal  to some participants to study influence in metrics
                             if (desync_participant_ids is not None and participant_id in desync_participant_ids):
                                 STEP02(args, df, participant_id, args.desync_segment_body, args.desync_seconds)
                             else:
