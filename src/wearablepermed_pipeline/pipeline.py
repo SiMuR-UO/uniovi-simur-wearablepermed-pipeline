@@ -166,6 +166,14 @@ def parse_args(args):
     )
 
     parser.add_argument(
+        "-desync-include-only-not-visual-participants",
+        "--desync-include-only-not-visual-participants",
+        dest="desync_include_only_not_visual_participants",
+        action='store_true',
+        help="Include all participants with and without close IMU datetime."
+    ) 
+
+    parser.add_argument(
         "-desync-participant-percent",
         "--desync-participant-percent",           
         dest="desync_participant_percent",
@@ -318,29 +326,30 @@ def STEP02(args, df, participant_id, desync_body_segment=None, desync_seconds=No
 
             execute_command(cmd)
         else: 
-            if body_segment == desync_body_segment:
-                cmd = [
-                    "csv_to_segmented_activity_desync",
-                    "--csv-file", str(file),
-                    "--excel-activity-log", activity_file,
-                    "--body-segment", body_segment,
-                    "--desync-seconds", str(desync_seconds),
-                    "--sample-init", str(row_missing_data.iloc[0]["Sample Numbers"]),
-                    "--start-time", str(row_missing_data.iloc[0]["Excel Hour"]),
-                    "--output", path.join(str(participant_folder), file.stem + "_seg" + ".npz"),
-                ]
-            else:
-               cmd = [
-                    "csv_to_segmented_activity",
-                    "--csv-file", str(file),
-                    "--excel-activity-log", activity_file,
-                    "--body-segment", body_segment,
-                    "--sample-init", str(row_missing_data.iloc[0]["Sample Numbers"]),
-                    "--start-time", str(row_missing_data.iloc[0]["Excel Hour"]),
-                    "--output", path.join(str(participant_folder), file.stem + "_seg" + ".npz"),
-                ]
+            if args.desync_include_only_not_visual_participants is False:
+                if body_segment == desync_body_segment:
+                    cmd = [
+                        "csv_to_segmented_activity_desync",
+                        "--csv-file", str(file),
+                        "--excel-activity-log", activity_file,
+                        "--body-segment", body_segment,
+                        "--desync-seconds", str(desync_seconds),
+                        "--sample-init", str(row_missing_data.iloc[0]["Sample Numbers"]),
+                        "--start-time", str(row_missing_data.iloc[0]["Excel Hour"]),
+                        "--output", path.join(str(participant_folder), file.stem + "_seg" + ".npz"),
+                    ]
+                else:
+                    cmd = [
+                        "csv_to_segmented_activity",
+                        "--csv-file", str(file),
+                        "--excel-activity-log", activity_file,
+                        "--body-segment", body_segment,
+                        "--sample-init", str(row_missing_data.iloc[0]["Sample Numbers"]),
+                        "--start-time", str(row_missing_data.iloc[0]["Excel Hour"]),
+                        "--output", path.join(str(participant_folder), file.stem + "_seg" + ".npz"),
+                    ]
 
-            execute_command(cmd)    
+                execute_command(cmd)    
 
 def STEP03(args, participant_id):
     # set participant folder
@@ -435,6 +444,7 @@ def main(args):
     # Open the file for writing
     with open("error_log.csv", mode="w", newline="") as error_file:
         # get a random sample of participants to be desynchronized in the segmentation step to study influence in metrics
+        desync_participant_ids = None
         if (args.desync_participant_percent is not None):
             n_total = len(os.listdir(args.dataset_folder))
             n_select = int(n_total * args.desync_participant_percent / 100)
