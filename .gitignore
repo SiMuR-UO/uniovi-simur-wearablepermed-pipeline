@@ -56,3 +56,5 @@ MANIFEST
 data/
 
 error_log*
+
+logs/
