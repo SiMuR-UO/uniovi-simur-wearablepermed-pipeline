@@ -10,6 +10,10 @@ from os import walk, path
 from datetime import datetime
 from pathlib import Path
 
+
+# Servidor ABURRIDO
+# nohup python3 src/wearablepermed_pipeline/pipeline.py --very-verbose --execute-steps 2,3,4 --dataset-folder /mnt/nvme0n1p1/wearablepermed/input --participants-missing-file /home/castellanosalejandro/git/SiMuR-UO/uniovi-simur-wearablepermed-pipeline/missing_end_datetimes.csv --crop-columns 1:7 --window-size 250 --window-overlapping-percent 50 --ml-models RandomForest --ml-sensors wrist,thigh,hip --output-case-folder /mnt/nvme1n2/git/uniovi-simur-wearablepermed-data/output --case-id resegmentacion > log_15_07_2026.txt &
+
 __author__ = "Miguel Angel Salinas Gancedo<uo34525@uniovi.es>, Alejandro Castellanos Alonso<uo265351@uniovi.es>, Antonio Miguel López Rodriguez<amlopez@uniovi.es>"
 __copyright__ = "Uniovi"
 __license__ = "MIT"
