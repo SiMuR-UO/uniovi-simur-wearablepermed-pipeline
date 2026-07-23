@@ -203,6 +203,14 @@ def parse_args(args):
     )
 
     parser.add_argument(
+        '-fs-downsampling', 
+        '--fs-downsampling',
+        dest="fs_downsampling",
+        help='Frequency to which we want to downsample the imumetry signals.',        
+        type=int
+    )
+
+    parser.add_argument(
         "-v",
         "--verbose",
         dest="loglevel",
