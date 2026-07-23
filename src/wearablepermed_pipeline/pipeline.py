@@ -207,7 +207,7 @@ def parse_args(args):
         '--fs-downsampling',
         dest="fs_downsampling",
         help='Frequency to which we want to downsample the imumetry signals.',        
-        type=int
+        type=float
     )
 
     parser.add_argument(
@@ -379,7 +379,8 @@ def STEP03(args, participant_id):
             "--crop-columns", args.crop_columns,
             "--window-size", args.window_size,
             "--window-overlapping-percent", args.window_overlapping_percent,
-            "--output", path.join(str(file.parent), file.stem.replace("_seg", "_tot") + ".npz")
+            "--output", path.join(str(file.parent), file.stem.replace("_seg", "_tot") + ".npz"),
+            "--fs-downsampling", str(args.fs_downsampling)
         ]
 
         if args.include_not_estructure_data == True:
